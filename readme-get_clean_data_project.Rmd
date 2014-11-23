@@ -1,0 +1,142 @@
+---
+title: "Getting and Cleaning Data Project--README"
+date: "22 November 2014"
+output: html_document
+---
+### Introduction
+
+This Is the README for the Getting and Cleaning Data Project. It describes the R (version 3.1.2) code that was used
+to perform the data transformation used to construct the completed project's data set. The
+variables and data of the project are described in the accompanying CODEBOOK file.
+
+### Acquire the Data Set
+
+The data sets are available from the following url:
+```
+url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip "
+```
+We can use this code to download the data set and uncompress it into the project's directory:
+```
+if (!file.exists('proj')) dir.create('proj)
+setwd('proj')
+download.file(url, destfile='dataset.zip', method='curl')
+unzip('datset.zip')
+```
+This last command creates a subdirectory `UCI HAR Dataset` and places all the data there in text files.
+
+### The Location and Structure of the Data Files
+
+The main measurement data is contained in two text files, one for a training data set and one for a test data set, so we set the following locations:
+```
+working.directory <- '~/downloads/get/proj/UCI HAR Dataset'
+train.data <- 'train/X_train.txt'
+test.data <- 'test/X_test.txt'
+```
+However, these are bare measurement data, without variable names, which are stored in a separate file:
+```
+vble.names.data <- 'features.txt'
+```
+In addition, there are two categortical id variables--which human subject was measured, and what activity they were performing.
+```
+subject.test.data <- 'test/subject_test.txt'
+subject.train.data <- 'train/subject_train.txt'
+activity.test.data <- 'test/y_test.txt'
+activity.train.data <- 'train/y_train.txt'
+activity.label.data <- 'activity_labels.txt'
+```
+The last file will allow us to translate from the integer activity code to the corresponding description of that activity.  Finally, we set the name of the output file to contain the transformed data set:
+```
+output.file <- "run_analysis_out.txt"
+```
+
+### Read the main data sets
+
+We change to the project's working directory and store the test data and training data in data frames.
+Both data sets contain the same 561 variables. The test data contains 2947 observations and the training data contains 7352 observations. These are bare tabular data without variable names.
+Ultimately we will stack and merge these into one.
+```
+setwd(working.directory)
+df.test <- read.table(test.data)
+df.train <- read.table(train.data)
+```
+
+The 561 variable names are contained in a separate file, so place these names in a separate data frame.
+```
+vble.names <- read.table(vble.names.data)
+```
+This is a 561 x 2 data frame in which the second column contains the variable name.\, so `vble.names[,2]` is a vector containing the 561 variable names, in the order they appear in the data sets.
+
+
+### Filter out some variables
+
+We want only the measurements on the mean and standard deviation, and none of the other statistical measures. So use `grep` to get the column numbers of variable names containing 'mean' or 'std' in the name:
+```
+mnsd.cols <- grep('(mean)|(std)', vble.names[,2]) 
+```
+There were 79 matches. Then remove all columns not in this list from the data sets
+```
+df.test <- df.test[ , mnsd.cols] # now 2947 x 79
+df.train <- df.train[ , mnsd.cols] # now 7352 x 79
+```
+Both data sets have been reduced from 561 columns to 79 columns. 
+We can now name these columns with their variable names, removing unused names:
+```
+names(df.test) <- vble.names[,2][mnsd.cols]
+names(df.train) <- vble.names[,2][mnsd.cols]
+```
+
+
+### Acquiring the ID variables: subject and activity
+
+There are two additional, categorical variables which identify the subject and the activity performed by the subject for each observation. There were 30 subjects observed, identified as  integers `1,...,30` and we can acquire this data as:
+```
+subject.test <- read.table(subject.test.data) 
+subject.train <- read.table(subject.train.data) 
+```
+Each of these is a one-dimensional data frame.
+Similarly, we get the activity being performed during each observation
+```
+activity.test <- read.table(activity.test.data) 
+activity.train <- read.table(activity.train.data) 
+```
+Each of these is a two-dimensional data frame, in which the activity code appears in the second column. Activity codes are integers `1,...,6`. We want to translate these codes into descriptive labels, so read the translation file and store it into a 6 x 2 data frame:
+```
+activity.label <- read.table(activity.label.data)
+```
+We can then translate the activity id variable from code to label as follows:
+```
+activity.test <- sapply( activity.test, function (x) activity.label[x,2] )
+activity.train <- sapply( activity.train, function (x) activity.label[x,2] )
+```
+Both of these data frames now have a single column.
+
+
+### Merge data sets
+
+We want to combine or merge the test and training data sets into a single data set. We do this simply by stacking the data:
+```
+df <- rbind(df.test, df.train)
+activity <- rbind(activity.test, activity.train)
+subject <- rbind(subject.test, subject.train)
+```
+Each of these data frames now contains 10,299 observations, but their column structure is unchanged.
+
+
+### Calculate group means for each subject and activity 
+
+The final task in the project is to "create a second, independent tidy data set with the average
+of each variable for each activity and each subject."  We use the `aggregate()` function, which applies a function, in this case a mean, to groups defined by the levels of a factor variable. In this case our groups are the cross tabulation of the levels of two factor variables, `activity` and `subject`. 
+```
+df.means <- aggregate(df, by=list(activity[,1], subject[,1]), FUN=mean, simplify=T)
+colnames(df.means)[1] <- 'activity'
+colnames(df.means)[2] <- 'subject'
+```
+This returns a tidy data set of dimension 180 x 81. There are 180 combinations of the 30 subjects and 6 activities, so all combinations are accounted for in separate rows. And there are 79 mean or std variables in the original data, plus the two ID variables, so each column is a separate variable.
+
+
+### Save the data
+
+Finally, we save the data to the output file, using `write.table()` with `row.name=FALSE`
+```
+write.table(df.means, file = output.file, row.names=F)
+```

@@ -1,0 +1,106 @@
+---
+title: "Getting and Cleaning Data Project--CodeBook"
+date: "22 November 2014"
+output:
+  html_document:
+    theme: cerulean
+---
+
+### Introduction:
+
+This Is the Codebook for the Getting and Cleaning Data Project. It describes the variables and data of the project and borrows heavily from the original researchers' research report and codebook. [1] It also outlines the data transformation used to construct the project's data set, although there is a more detailed description of the code in the accompanying README file.
+
+### Data:
+
+The data used are from the Human Activity Recognition Using Smartphones Data Set [1]. Using a smart phone with an embedded accelerometer and gyroscope, the researchcers measured linear acceleration and angular velocity in all three axes of motion at 50 times per second. They studied 30 different human subjects, each performing six different simple motions (for example, sitting, standing, walking). 
+
+Each device (accelerometer and gyroscope) generated measurements on acceleration and gravity for both jerk and magnitude in all three X,Y, and Z directions. These measurements were then pre-processed using various signal filters and Fourier transforms to obtain measurements in both the time and frequency domains. This allowed the measurements to be separated into additional variables for body and gravity.
+
+Finally, the researchers computed statistics of each of these measurements, such as mean, std, min, max, entropy, skewness, kurtosis, etc.
+
+This results in 10299 observations of 561 measurement variables, plus id variables for subject and activity.
+
+The accelerometer signals are measured in standard gravity units, `g`, the usual measure of acceleration.  On the other hand, the gyroscope measured angular velocity, whose units are radians per second. All variables were then are normalized and bounded within [-1,1].
+
+
+### Project Task
+
+The data are provided in training and test sets, in pure tabular form without headings. and with descriptive file names and categorical id variables in separate files. We need to merge that data into one data set, and then filter this large data set into a smaller data set (of 79 variables) which only considers the statistics for mean and standard deviation.
+
+Finally we need to construct a new data table which reports the group means of these 79 variables for each combination of the factor id variables, 30 subjects and 6 activities, or 180 combinations. 
+
+The specific code used for this data transformation task is reported and described in the accompanying README file. Briefly, the test and training sets are read and stored in data frames. The 561 variable names are `grep`ped for the patterns `mean()` or `std()` and variable names not containing either pattern are discarded as are the corresponding data columns.
+
+The categorical id variables, `subject` and `activity`, are aquired for each observation, and the `activity` codes are translated from a numercal code into descriptive terms. Then all data sets are stacked and merged to combine the test and training data sets.
+
+Finally, R's `aggregate` function is used to calculate group means for each of the 79 measurement variables and for every combination of subject and activity.
+
+
+### Variables
+
+The naming conventions for the variables are:
+
+variable name  |  meaning
+----------------|--------------------
+t or f | time or frequency domain
+Body or Gravity  |  the accelerometer's filter decomposition into body and gravitational components
+Acc or Gyro  |  acelerometer of gyroscope measurements
+Jerk  |  the third derivative of the motion measured
+mean or std   | mean or standard deviation
+X,Y or Z  |  the direction of the measurement
+
+In addition to `activity` and `subject`, this results in the following list of variable reported:
+```
+tBodyAcc-mean()-X tBodyAcc-mean()-Y tBodyAcc-mean()-Z 
+tBodyAcc-std()-X tBodyAcc-std()-Y tBodyAcc-std()-Z 
+tGravityAcc-mean()-X tGravityAcc-mean()-Y tGravityAcc-mean()-Z 
+tGravityAcc-std()-X tGravityAcc-std()-Y tGravityAcc-std()-Z 
+tBodyAccJerk-mean()-X tBodyAccJerk-mean()-Y tBodyAccJerk-mean()-Z 
+tBodyAccJerk-std()-X tBodyAccJerk-std()-Y tBodyAccJerk-std()-Z 
+tBodyGyro-mean()-X tBodyGyro-mean()-Y tBodyGyro-mean()-Z 
+tBodyGyro-std()-X tBodyGyro-std()-Y tBodyGyro-std()-Z 
+tBodyGyroJerk-mean()-X tBodyGyroJerk-mean()-Y tBodyGyroJerk-mean()-Z 
+tBodyGyroJerk-std()-X tBodyGyroJerk-std()-Y tBodyGyroJerk-std()-Z 
+tBodyAccMag-mean() tBodyAccMag-std() 
+tGravityAccMag-mean() tGravityAccMag-std() 
+tBodyAccJerkMag-mean() tBodyAccJerkMag-std() 
+tBodyGyroMag-mean() tBodyGyroMag-std() 
+tBodyGyroJerkMag-mean() tBodyGyroJerkMag-std() 
+fBodyAcc-mean()-X fBodyAcc-mean()-Y fBodyAcc-mean()-Z 
+fBodyAcc-std()-X fBodyAcc-std()-Y fBodyAcc-std()-Z 
+fBodyAcc-meanFreq()-X fBodyAcc-meanFreq()-Y fBodyAcc-meanFreq()-Z 
+fBodyAccJerk-mean()-X fBodyAccJerk-mean()-Y fBodyAccJerk-mean()-Z 
+fBodyAccJerk-std()-X fBodyAccJerk-std()-Y fBodyAccJerk-std()-Z 
+fBodyAccJerk-meanFreq()-X fBodyAccJerk-meanFreq()-Y fBodyAccJerk-meanFreq()-Z 
+fBodyGyro-mean()-X fBodyGyro-mean()-Y fBodyGyro-mean()-Z 
+fBodyGyro-std()-X fBodyGyro-std()-Y fBodyGyro-std()-Z 
+fBodyGyro-meanFreq()-X fBodyGyro-meanFreq()-Y fBodyGyro-meanFreq()-Z 
+fBodyAccMag-mean() fBodyAccMag-std() 
+fBodyAccMag-meanFreq() 
+fBodyBodyAccJerkMag-mean() fBodyBodyAccJerkMag-std() 
+fBodyBodyAccJerkMag-meanFreq() 
+fBodyBodyGyroMag-mean() fBodyBodyGyroMag-std() 
+fBodyBodyGyroMag-meanFreq() 
+fBodyBodyGyroJerkMag-mean() fBodyBodyGyroJerkMag-std() 
+fBodyBodyGyroJerkMag-meanFreq()
+```
+
+### References
+
+[1] Jorge L. Reyes-Ortiz, Davide Anguita, Alessandro Ghio, Luca Oneto. *Human Activity Recognition Using Smartphones Data Set*, UCI Machine Learning Repository, 10 December 2012, URL: http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
